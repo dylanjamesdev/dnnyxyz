@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Social Hub</title>
+    <title>My Socials!</title>
     <style>
         body {
             margin: 0;
@@ -17,6 +17,7 @@
             flex-direction: column;
             height: 100vh;
             text-align: center;
+            cursor: none; /* Hide default cursor */
         }
 
         body::before {
@@ -35,6 +36,48 @@
             0% { transform: translate(0, 0); }
             50% { transform: translate(-2%, -2%); }
             100% { transform: translate(0, 0); }
+        }
+
+        /* Custom purple circular cursor */
+        #custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            background: #9400D3; /* Purple matching the name */
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 0 8px #9400D3, 0 0 16px #9400D3;
+        }
+
+        /* Trail effect */
+        .trail {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: rgba(148, 0, 211, 0.6); /* Slightly transparent purple */
+            border-radius: 50%;
+            pointer-events: none;
+            animation: trailFade 0.6s forwards;
+            box-shadow: 0 0 8px #9400D3, 0 0 12px #9400D3;
+        }
+
+        @keyframes trailFade {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.2);
+            }
+        }
+
+        a {
+            pointer-events: auto; /* Enable links to be clickable */
+            cursor: none; /* Disable default pointer for links */
         }
 
         .profile {
@@ -105,8 +148,10 @@
     </style>
 </head>
 <body>
+    <div id="custom-cursor"></div>
+
     <div class="music-control" id="musicControl"></div>
-    <audio id="backgroundMusic" loop autoplay>
+    <audio id="backgroundMusic" loop>
         <source src="music/background-music.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
@@ -148,9 +193,31 @@
     <div class="ip-display" id="ipDisplay">IP Address: Loading...</div>
 
     <script>
+        const customCursor = document.getElementById('custom-cursor');
         const musicControl = document.getElementById('musicControl');
         const backgroundMusic = document.getElementById('backgroundMusic');
 
+        // Cursor and trail logic
+        document.addEventListener('mousemove', (e) => {
+            customCursor.style.transform = `translate(${e.clientX - 10}px, ${e.clientY - 10}px)`;
+            const trail = document.createElement('div');
+            trail.classList.add('trail');
+            trail.style.left = `${e.clientX - 7}px`;
+            trail.style.top = `${e.clientY - 7}px`;
+            document.body.appendChild(trail);
+            setTimeout(() => trail.remove(), 600);
+        });
+
+        // Auto-play music bypass
+        window.addEventListener('DOMContentLoaded', () => {
+            const playMusic = () => {
+                backgroundMusic.play();
+                window.removeEventListener('click', playMusic);
+            };
+            window.addEventListener('click', playMusic); // Simulates user interaction
+        });
+
+        // Mute/unmute button
         musicControl.addEventListener('click', () => {
             if (backgroundMusic.paused) {
                 backgroundMusic.play();
@@ -161,6 +228,7 @@
             }
         });
 
+        // Fetch IP and location
         async function fetchIP() {
             const ipDisplay = document.getElementById('ipDisplay');
             try {
